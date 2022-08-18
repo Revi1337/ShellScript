@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Author : revi1337
+# Date : 2022-07-24
+
+string=$1
+argv=("$@")
+
+
+function usage(){
+	echo -e './Usage STRINGS [MODE] [ARCH]\n'
+	echo -e '[MODE]'
+	echo -e '--little : data sort with little-endian (DEFUALT)'
+	echo -e '--big    : data sort with big-endian\n'
+	echo -e '[ARCH]'
+	echo -e '--64 : pack data 64bit (DEFAULT)'
+	echo -e '--32 : pack data 32bit'
+	exit 1 
+}
+
+# Usage And Correct Error
+if [ "$#" -eq 0 ]; then
+	usage
+elif [ "$#" -gt 3 ]; then
+	usage
+fi
+
+
+
+# Check Arch
+if [[ "${argv[*]}" =~ [-]{2}32 ]]; then
+	byte=4
+	arch="32bit"
+elif ! [[ "${argv[*]}" =~ [-]{2}64 ]] || [[ "${argv[*]}" =~ [-]{2}64 ]]; then
+	byte=8
+	arch="64bit"
+fi
+
+
+# Check Data Sort
+echo -e "\e[1;32;40mINPUT\e[0m"
+echo -e "\e[1;37;40m$string\e[0m\n"
+if [[ "${argv[*]}" =~ "--big" ]]; then
+	sort="Big-Endian"
+	res=($(echo $string | fold -w $byte | while read string; do echo $string | xxd -p | sed -e 's/0a//g' | awk '{print "0x" $1}'; done | tac))
+	echo -e "\e[1;32;40mFORMAT\e[0m"
+	echo -e "\e[1;37;40m$arch $sort\e[0m\n"
+
+elif ! [[ "${argv[*]}" =~ [-]{2}little* ]] || [[ "${argv[*]}" =~ "--little" ]]; then
+	sort="Little-Endian"
+	res=($(echo $string | fold -w $byte | while read string; do echo $string | rev | xxd -p | sed -e 's/0a//g' | awk '{print "0x" $1}'; done | tac))
+	echo -e "\e[1;32;40mFORMAT\e[0m"
+	echo -e "\e[1;37;40m$arch $sort\e[0m\n"
+fi
+
+
+# print OUTPUT
+echo -e "\e[1;32;40mOUTPUT\e[0m"
+for i in ${res[@]}; do echo -e "\e[1;37;40m$i\e[0m"; done
